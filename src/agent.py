@@ -51,7 +51,7 @@ async def run_research_agent(prompt: str):
         )
     }
 
-    logger.info("🔌 Initializing MCP server connections...")
+    logger.info(" Initializing MCP server connections...")
 
     # Context managers to handle server lifecycles
     async with stdio_client(servers["pubmed"]) as (pubmed_r, pubmed_w), \
@@ -82,9 +82,10 @@ async def run_research_agent(prompt: str):
 
             # 2. Initial prompt to Qwen
             messages = [{"role": "user", "content": prompt}]
-            logger.info(f"🧠 Querying Qwen ({MODEL_NAME})...")
+            logger.info(f" Querying Qwen ({MODEL_NAME})...")
 
             max_iterations = 5
+            response = None
             for iteration in range(max_iterations):
                 response = await client.chat.completions.create(
                     model=MODEL_NAME,
@@ -105,7 +106,7 @@ async def run_research_agent(prompt: str):
                 for tool_call in assistant_message.tool_calls:
                     func_name = tool_call.function.name
                     func_args = json.loads(tool_call.function.arguments)
-                    logger.info(f"🛠️ Executing tool: {func_name}")
+                    logger.info(f" Executing tool: {func_name}")
 
                     # Route to the correct session
                     if func_name in ["search_pubmed", "fetch_pubmed_abstracts"]:
@@ -130,13 +131,15 @@ async def run_research_agent(prompt: str):
                     })
 
             # 5. Output the final synthesized response
-            logger.info("📝 Final synthesis complete.")
+            logger.info(" Final synthesis complete.")
             print("\n" + "=" * 60)
-            print("🔬 RESEARCH AGENT OUTPUT:")
+            print(" RESEARCH AGENT OUTPUT:")
             print("=" * 60)
-            print(response.choices[0].message.content)
+            if response and response.choices and response.choices[0].message:
+                print(response.choices[0].message.content)
+            else:
+                print("No response content available")
             print("=" * 60 + "\n")
-
 
 if __name__ == "__main__":
     # Example usage: Load a prompt from a file or define it here
