@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Azam"
+  given-names: "M. D. Basit"
+title: "bio-mcp-research-agent"
+version: "1.0.0"
+date-released: "2026-06-02"
+url: "https://github.com/mdbasit897/bio-mcp-research-agent"
+repository-code: "https://github.com/mdbasit897/bio-mcp-research-agent.git"
+abstract: "An AI research agent utilizing the Model Context Protocol (MCP) tailored for biological and biomedical data analysis."
+keywords:
+  - "model-context-protocol"
+  - "mcp"
+  - "ai-agent"
+  - "bioinformatics"
+  - "research-agent"
+license: "MIT"
