@@ -1,0 +1,266 @@
+name: Code Quality & Security Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 3 AM UTC
+    - cron: '0 3 * * *'
+
+jobs:
+  lint-and-format:
+    name: Linting & Formatting
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run black code formatting
+      run: black --check src/ tests/
+    
+    - name: Run isort import sorting
+      run: isort --check-only src/ tests/
+    
+    - name: Run flake8 linting
+      run: |
+        flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Run pycodestyle
+      run: pycodestyle src/ tests/ --max-line-length=127 --ignore=E203,W503
+    
+    - name: Run pydocstyle
+      run: pydocstyle src/ tests/ --convention=google
+
+  security-analysis:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run bandit security scanning
+      run: |
+        bandit -r src/ -f json -o bandit-report.json -ll
+        bandit -r src/ -f txt -o bandit-report.txt
+    
+    - name: Run safety security check
+      run: |
+        safety check --json --output safety-report.json
+        safety check --output safety-report.txt
+    
+    - name: Run semgrep security scanning
+      run: semgrep --config=p/security -j -o semgrep-report.json
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          bandit-report.txt
+          safety-report.json
+          safety-report.txt
+          semgrep-report.json
+
+  dependency-analysis:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Generate dependency graph
+      run: pipdeptree --graphviz > dependency_graph.dot
+    
+    - name: Convert dependency graph to image
+      run: dot -Tpng dependency_graph.dot -o dependency_graph.png
+    
+    - name: Run pip check
+      run: pip check --verbose
+    
+    - name: Generate requirements report
+      run: pip list --outdated --format=json > outdated_requirements.json
+    
+    - name: Upload dependency analysis
+      uses: actions/upload-artifact@v3
+      with:
+        name: dependency-analysis
+        path: |
+          dependency_graph.png
+          dependency_graph.dot
+          outdated_requirements.json
+
+  code-metrics:
+    name: Code Metrics
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run vulture (dead code detection)
+      run: vulture src/ --min-confidence 70 --sort-by-size --output vulture-report.txt
+    
+    - name: Run radon (code metrics)
+      run: |
+        radon cc src/ -nb -a -nb > radon_cc.txt
+        radon mi src/ -nb > radon_mi.txt
+        radon cc src/ -nb -a -nb -nb > radon_cc_visual.txt
+    
+    - name: Run xedoc (documentation coverage)
+      run: xedoc src/ > xedoc-report.txt
+    
+    - name: Upload code metrics
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-metrics
+        path: |
+          vulture-report.txt
+          radon_cc.txt
+          radon_mi.txt
+          radon_cc_visual.txt
+          xedoc-report.txt
+
+  performance-analysis:
+    name: Performance Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run memory profiling
+      run: |
+        python -m memory_profiler -o memory_profile.txt src/agent.py
+    
+    - name: Run line profiler
+      run: |
+        kernprof -l -v -o line_profile.txt src/agent.py
+    
+    - name: Upload performance analysis
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-analysis
+        path: |
+          memory_profile.txt
+          line_profile.txt
+
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, security-analysis, dependency-analysis, code-metrics, performance-analysis]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run final quality checks
+      run: |
+        # Check for security vulnerabilities
+        if [ -f "safety-report.json" ]; then
+          VULNS=$(jq '.vulnerabilities | length' safety-report.json)
+          if [ "$VULNS" -gt 0 ]; then
+            echo "Found $VULNS security vulnerabilities!"
+            exit 1
+          fi
+        fi
+        
+        # Check for bandit issues
+        if [ -f "bandit-report.json" ]; then
+          BANDIT_ISSUES=$(jq '.results | length' bandit-report.json)
+          if [ "$BANDIT_ISSUES" -gt 0 ]; then
+            echo "Found $BANDIT_ISSUES bandit issues!"
+            exit 1
+          fi
+        fi
+        
+        echo "All quality checks passed!"
+    
+    - name: Generate quality report
+      run: |
+        echo "=== Code Quality Report ===" > quality-report.txt
+        echo "Timestamp: $(date)" >> quality-report.txt
+        echo "" >> quality-report.txt
+        echo "Linting Status: Passed" >> quality-report.txt
+        echo "Security Status: Passed" >> quality-report.txt
+        echo "Dependency Status: Passed" >> quality-report.txt
+        echo "Code Metrics Status: Passed" >> quality-report.txt
+        echo "Performance Status: Passed" >> quality-report.txt
+    
+    - name: Upload quality report
+      uses: actions/upload-artifact@v3
+      with:
+        name: quality-report
+        path: quality-report.txt

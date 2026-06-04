@@ -1,0 +1,11 @@
+Act as an expert oncology AI researcher.
+
+Execute the following systematic review:
+1. Use `search_pubmed` to find 10 recent papers (2020-2024) on "machine learning cancer diagnosis deep learning"
+2. Fetch their abstracts using `fetch_pubmed_abstracts`
+3. Use the `filesystem` tool to save a comprehensive analysis to `research_outputs/cancer_ml_analysis.md` including:
+   - Cancer types studied
+   - ML models used
+   - Accuracy rates reported
+   - Key limitations identified
+4. Write a 400-word summary of the most promising approaches and remaining challenges in AI-assisted cancer diagnosis.

@@ -1,10 +1,11 @@
 """
-MCP Research Agent Orchestrator
-Connects Qwen (via OpenRouter or local Ollama) to MCP servers for automated literature review.
+MCP Research Agent CLI Version
+Supports command line arguments and file-based prompts
 """
 import os
 import json
 import asyncio
+import argparse
 import logging
 from typing import List, Dict, Any
 from dotenv import load_dotenv
@@ -18,7 +19,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Initialize OpenAI-compatible client (Works with OpenRouter or Ollama)
+# Initialize OpenAI-compatible client
 client = AsyncOpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY", "ollama"),
     base_url=os.getenv("OPENROUTER_BASE_URL", "http://localhost:11434/v1"),
@@ -29,12 +30,8 @@ client = AsyncOpenAI(
 )
 MODEL_NAME = os.getenv("OPENROUTER_MODEL", "qwen/qwen-2.5-coder-32b-instruct")
 
-
 async def run_research_agent(prompt: str):
-    """
-    Executes the research agent workflow: connects to MCP servers,
-    routes tool calls to Qwen, and synthesizes the final output.
-    """
+    """Execute the research agent workflow"""
     # Define MCP server configurations
     servers = {
         "pubmed": StdioServerParameters(
@@ -51,9 +48,8 @@ async def run_research_agent(prompt: str):
         )
     }
 
-    logger.info(" Initializing MCP server connections...")
+    logger.info("🔌 Initializing MCP server connections...")
 
-    # Context managers to handle server lifecycles
     async with stdio_client(servers["pubmed"]) as (pubmed_r, pubmed_w), \
             stdio_client(servers["semantic_scholar"]) as (ss_r, ss_w), \
             stdio_client(servers["filesystem"]) as (fs_r, fs_w):
@@ -67,7 +63,7 @@ async def run_research_agent(prompt: str):
             await fs_session.initialize()
             logger.info("✅ All MCP servers connected and initialized.")
 
-            # 1. Gather all available tools from the servers
+            # Gather all available tools
             pubmed_tools = await pubmed_session.list_tools()
             ss_tools = await ss_session.list_tools()
             fs_tools = await fs_session.list_tools()
@@ -80,9 +76,9 @@ async def run_research_agent(prompt: str):
                 }} for tool in (pubmed_tools.tools + ss_tools.tools + fs_tools.tools)
             ]
 
-            # 2. Initial prompt to Qwen
+            # Execute research workflow
             messages = [{"role": "user", "content": prompt}]
-            logger.info(f" Querying Qwen ({MODEL_NAME})...")
+            logger.info(f"🧠 Querying Qwen ({MODEL_NAME})...")
 
             max_iterations = 5
             response = None
@@ -97,16 +93,15 @@ async def run_research_agent(prompt: str):
                 assistant_message = response.choices[0].message
                 messages.append(assistant_message)
 
-                # 3. Check for tool calls
+                # Check for tool calls
                 if not assistant_message.tool_calls:
-                    # No more tools needed, we have the final answer
                     break
 
-                # 4. Execute tool calls sequentially
+                # Execute tool calls sequentially
                 for tool_call in assistant_message.tool_calls:
                     func_name = tool_call.function.name
                     func_args = json.loads(tool_call.function.arguments)
-                    logger.info(f" Executing tool: {func_name}")
+                    logger.info(f"🛠️ Executing tool: {func_name}")
 
                     # Route to the correct session
                     if func_name in ["search_pubmed", "fetch_pubmed_abstracts"]:
@@ -130,10 +125,10 @@ async def run_research_agent(prompt: str):
                         "content": result_content
                     })
 
-            # 5. Output the final synthesized response
-            logger.info(" Final synthesis complete.")
+            # Output the final synthesized response
+            logger.info("📝 Final synthesis complete.")
             print("\n" + "=" * 60)
-            print(" RESEARCH AGENT OUTPUT:")
+            print("🔬 RESEARCH AGENT OUTPUT:")
             print("=" * 60)
             if response and response.choices and response.choices[0].message:
                 print(response.choices[0].message.content)
@@ -141,18 +136,48 @@ async def run_research_agent(prompt: str):
                 print("No response content available")
             print("=" * 60 + "\n")
 
-if __name__ == "__main__":
-    # === CUSTOM PROMPT SECTION ===
-    # Replace this with your own research prompt
-    custom_prompt = """
-    Act as an expert biomedical AI researcher.
-    1. Use the `search_pubmed` tool to find 5 recent papers (2020-2024) on "non-invasive glucose monitoring PPG machine learning".
-    2. Fetch their abstracts using `fetch_pubmed_abstracts`.
-    3. Use the `filesystem` tool to save a structured Markdown summary of their MARD scores and limitations to `research_outputs/glucose_gaps.md`.
-    4. Finally, summarize the top 2 methodological gaps for a PhD proposal based on the saved file.
-    """
+def load_prompt_from_file(file_path: str) -> str:
+    """Load prompt from a file"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        print(f"Error: Prompt file '{file_path}' not found")
+        exit(1)
+    except Exception as e:
+        print(f"Error reading prompt file: {e}")
+        exit(1)
 
+def main():
+    parser = argparse.ArgumentParser(description="MCP Research Agent")
+    parser.add_argument("--prompt", "-p", type=str, help="Direct prompt string")
+    parser.add_argument("--file", "-f", type=str, help="Path to prompt file")
+    parser.add_argument("--example", "-e", action="store_true", help="Use example prompt")
+    
+    args = parser.parse_args()
+    
     # Ensure output directory exists
     os.makedirs("research_outputs", exist_ok=True)
+    
+    # Determine which prompt to use
+    if args.example:
+        prompt = """
+        Act as an expert biomedical AI researcher.
+        1. Use the `search_pubmed` tool to find 5 recent papers (2020-2024) on "non-invasive glucose monitoring PPG machine learning".
+        2. Fetch their abstracts using `fetch_pubmed_abstracts`.
+        3. Use the `filesystem` tool to save a structured Markdown summary of their MARD scores and limitations to `research_outputs/glucose_gaps.md`.
+        4. Finally, summarize the top 2 methodological gaps for a PhD proposal based on the saved file.
+        """
+    elif args.file:
+        prompt = load_prompt_from_file(args.file)
+    elif args.prompt:
+        prompt = args.prompt
+    else:
+        print("Please provide a prompt using --prompt, --file, or --example")
+        parser.print_help()
+        return
+    
+    asyncio.run(run_research_agent(prompt))
 
-    asyncio.run(run_research_agent(custom_prompt))
+if __name__ == "__main__":
+    main()

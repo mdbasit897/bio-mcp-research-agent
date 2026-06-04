@@ -1,0 +1,12 @@
+Act as an expert cardiovascular AI researcher.
+
+Conduct a comprehensive analysis of AI in cardiovascular medicine:
+1. Use `search_pubmed` to find 8 papers (2020-2024) on "deep learning ECG arrhythmia detection"
+2. Use `search_semantic_scholar` to find additional relevant papers on "AI cardiovascular imaging"
+3. Fetch abstracts for both PubMed and Semantic Scholar results
+4. Use the `filesystem` tool to create a detailed comparison table in `research_outputs/cardio_ml_comparison.md` showing:
+   - Sensitivity and specificity metrics
+   - Dataset sizes
+   - Model architectures
+   - Clinical validation status
+5. Generate a 300-word executive summary highlighting the top 3 breakthroughs and 2 major challenges.

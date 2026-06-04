@@ -1,0 +1,287 @@
+name: Comprehensive Testing Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run comprehensive tests weekly on Sundays at 1 AM UTC
+    - cron: '0 1 * * 0'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # Unit Testing Matrix
+  unit-tests-matrix:
+    name: Unit Tests Matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        test-type: ['unit']
+        exclude:
+          # Exclude some combinations to reduce CI time
+          - python-version: '3.9'
+            test-type: 'unit'
+          - python-version: '3.12'
+            test-type: 'unit'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run unit tests
+      run: |
+        pytest tests/unit/ -v --cov=src/unit --cov-report=xml --cov-report=term-missing --cov-fail-under=85
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unit-tests,python-${{ matrix.python-version }}
+        name: codecov-unit-${{ matrix.python-version }}
+
+  # Integration Testing
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-suite: ['mcp-server-interactions', 'agent-server-integration']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run integration tests
+      run: |
+        if [ "${{ matrix.test-suite }}" = "mcp-server-interactions" ]; then
+          pytest tests/integration/test_mcp_server_interactions.py -v --cov=src/integration --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+        else
+          pytest tests/integration/test_agent_server_integration.py -v --cov=src/integration --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+        fi
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: integration-tests,${{ matrix.test-suite }}
+        name: codecov-integration-${{ matrix.test-suite }}
+
+  # End-to-End Testing
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-type: ['mock', 'real-api']
+        exclude:
+          # Skip real API tests in CI by default
+          - test-type: 'real-api'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run E2E tests
+      run: |
+        if [ "${{ matrix.test-type }}" = "real-api" ]; then
+          export SKIP_REAL_API_TESTS=false
+          pytest tests/e2e/ -v --cov=src/e2e --cov-report=xml --cov-report=term-missing -m "real_api" --cov-fail-under=70
+        else
+          export SKIP_REAL_API_TESTS=true
+          pytest tests/e2e/ -v --cov=src/e2e --cov-report=xml --cov-report=term-missing -m "not real_api" --cov-fail-under=80
+        fi
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: e2e-tests,${{ matrix.test-type }}
+        name: codecov-e2e-${{ matrix.test-type }}
+
+  # Performance Testing
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-type: ['benchmarking', 'load-testing']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run performance tests
+      run: |
+        if [ "${{ matrix.test-type }}" = "benchmarking" ]; then
+          pytest tests/performance/test_benchmarking.py -v --benchmark-only --benchmark-json=benchmark-results.json
+        else
+          pytest tests/performance/test_load_testing.py -v --benchmark-only --benchmark-json=load-test-results.json
+        fi
+    
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.test-type }}-results
+        path: |
+          benchmark-results.json
+          load-test-results.json
+
+  # Security Testing
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-suite: ['edge-cases', 'reproducibility']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run security tests
+      run: |
+        if [ "${{ matrix.test-suite }}" = "edge-cases" ]; then
+          pytest tests/security/test_edge_cases.py -v --cov=src/security --cov-report=xml --cov-report=term-missing --cov-fail-under=90
+        else
+          pytest tests/security/test_reproducibility.py -v --cov=src/security --cov-report=xml --cov-report=term-missing --cov-fail-under=85
+        fi
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: security-tests,${{ matrix.test-suite }}
+        name: codecov-security-${{ matrix.test-suite }}
+
+  # Test Report Generation
+  test-report:
+    name: Test Report
+    runs-on: ubuntu-latest
+    needs: [unit-tests-matrix, integration-tests, e2e-tests, performance-tests, security-tests]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Generate comprehensive test report
+      run: |
+        pytest tests/ --html=report.html --self-contained-html --cov=src --cov-report=html
+    
+    - name: Upload test report
+      uses: actions/upload-artifact@v3
+      with:
+        name: comprehensive-test-report
+        path: |
+          report.html
+          htmlcov/
+
+  # Test Summary
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests-matrix, integration-tests, e2e-tests, performance-tests, security-tests]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Generate test summary
+      run: |
+        echo "=== Test Summary ===" > test-summary.md
+        echo "Date: $(date)" >> test-summary.md
+        echo "" >> test-summary.md
+        echo "Unit Tests: Passed" >> test-summary.md
+        echo "Integration Tests: Passed" >> test-summary.md
+        echo "E2E Tests: Passed" >> test-summary.md
+        echo "Performance Tests: Passed" >> test-summary.md
+        echo "Security Tests: Passed" >> test-summary.md
+        echo "" >> test-summary.md
+        echo "Overall Status: ✅ ALL TESTS PASSED" >> test-summary.md
+    
+    - name: Upload test summary
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-summary
+        path: test-summary.md
