@@ -171,16 +171,8 @@ def test_metrics():
     }
 
 
-@pytest.fixture
-def pytest_plugins():
-    """Pytest plugins configuration."""
-    return [
-        'pytest_cov',
-        'pytest_asyncio',
-        'pytest_mock',
-        'pytest_benchmark',
-        'pytest_html'
-    ]
+# Pytest plugins are configured in pytest.ini
+# No need for a fixture here
 
 
 # Custom markers

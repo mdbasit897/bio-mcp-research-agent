@@ -68,8 +68,8 @@ class TestAgentCLI:
              patch('argparse.ArgumentParser.print_help') as mock_help, \
              patch('agent_cli.os.makedirs') as mock_makedirs, \
              patch('agent_cli.asyncio.run') as mock_run:
-        
-        main()
+            
+            main()
         
         mock_help.assert_called_once()
         mock_makedirs.assert_not_called()

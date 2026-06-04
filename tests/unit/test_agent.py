@@ -31,8 +31,8 @@ class TestResearchAgentCore:
             # Setup mocks
             mock_client.chat.completions.create = AsyncMock()
             mock_stdio.return_value.__aenter__.return_value = (Mock(), Mock())
-            mock_session_class.return_value = AsyncMock()
-            mock_session.return_value.initialize = AsyncMock()
+            mock_session = mock_session_class.return_value
+            mock_session.initialize = AsyncMock()
             
             # Test initialization
             await run_research_agent(mock_prompt)
@@ -55,12 +55,13 @@ class TestResearchAgentCore:
         with patch('agent.client') as mock_client, \
              patch('agent.stdio_client') as mock_stdio, \
              patch('agent.ClientSession') as mock_session_class, \
-             patch('agent.os.makedirs') as mock_makedirs:
+             patch('agent.os.makedirs'):
             
-            mock_client.chat.completions.create.return_value = mock_response
+            mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
             mock_stdio.return_value.__aenter__.return_value = (Mock(), Mock())
-            mock_session_class.return_value = AsyncMock()
-            mock_session.return_value.initialize = AsyncMock()
+            mock_session = mock_session_class.return_value
+            mock_session.initialize = AsyncMock()
+            mock_session.list_tools = AsyncMock(return_value=Mock(tools=[]))
             
             # Should not raise exceptions
             await run_research_agent(mock_prompt)
@@ -92,9 +93,9 @@ class TestResearchAgentCore:
             
             mock_client.chat.completions.create.return_value = mock_response
             mock_stdio.return_value.__aenter__.return_value = (Mock(), Mock())
-            mock_session_class.return_value = AsyncMock()
-            mock_session.return_value.initialize = AsyncMock()
-            mock_session.return_value.call_tool = AsyncMock(return_value=Mock(content="Mock search results"))
+            mock_session = mock_session_class.return_value
+            mock_session.initialize = AsyncMock()
+            mock_session.call_tool = AsyncMock(return_value=Mock(content="Mock search results"))
             
             # Should handle tool calls without errors
             await run_research_agent(mock_prompt)
@@ -129,9 +130,9 @@ class TestResearchAgentCore:
              patch('agent.os.makedirs') as mock_makedirs:
             
             mock_stdio.return_value.__aenter__.return_value = (Mock(), Mock())
-            mock_session_class.return_value = AsyncMock()
-            mock_session.return_value.initialize = AsyncMock()
-            mock_session.return_value.call_tool = AsyncMock(return_value=Mock(content="Mock result"))
+            mock_session = mock_session_class.return_value
+            mock_session.initialize = AsyncMock()
+            mock_session.call_tool = AsyncMock(return_value=Mock(content="Mock result"))
             
             # Should handle multiple iterations
             await run_research_agent(mock_prompt)
@@ -163,8 +164,8 @@ class TestResearchAgentCore:
              patch('agent.os.makedirs') as mock_makedirs:
             
             mock_stdio.return_value.__aenter__.return_value = (Mock(), Mock())
-            mock_session_class.return_value = AsyncMock()
-            mock_session.return_value.initialize = AsyncMock()
+            mock_session = mock_session_class.return_value
+            mock_session.initialize = AsyncMock()
             
             # Should handle errors gracefully (though may raise expected exceptions)
             with pytest.raises(Exception):
@@ -192,8 +193,8 @@ class TestResearchAgentMessaging:
             mock_client.chat.completions.create.return_value = mock_response
             
             mock_stdio.return_value.__aenter__.return_value = (Mock(), Mock())
-            mock_session_class.return_value = AsyncMock()
-            mock_session.return_value.initialize = AsyncMock()
+            mock_session = mock_session_class.return_value
+            mock_session.initialize = AsyncMock()
             
             await run_research_agent(test_prompt)
             
@@ -227,9 +228,9 @@ class TestResearchAgentMessaging:
             
             mock_client.chat.completions.create.return_value = mock_response
             mock_stdio.return_value.__aenter__.return_value = (Mock(), Mock())
-            mock_session_class.return_value = AsyncMock()
-            mock_session.return_value.initialize = AsyncMock()
-            mock_session.return_value.call_tool = AsyncMock(return_value=Mock(
+            mock_session = mock_session_class.return_value
+            mock_session.initialize = AsyncMock()
+            mock_session.call_tool = AsyncMock(return_value=Mock(
                 content='{"papers": [{"title": "Test Paper", "pmid": "123456"}]}'
             ))
             
@@ -298,8 +299,8 @@ class TestResearchAgentConfiguration:
             
             mock_client.chat.completions.create.return_value = mock_response
             mock_stdio.return_value.__aenter__.return_value = (Mock(), Mock())
-            mock_session_class.return_value = AsyncMock()
-            mock_session.return_value.initialize = AsyncMock()
+            mock_session = mock_session_class.return_value
+            mock_session.initialize = AsyncMock()
             
             # Mock different sessions for different tools
             mock_pubmed_session = AsyncMock()
