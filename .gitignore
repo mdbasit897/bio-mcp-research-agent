@@ -1,50 +1,39 @@
-# Examples
-GITHUB_ACTIONS_FIX_GUIDE.md
-
-# Dependencies
-node_modules/
-.venv/
-venv/
-__pycache__/
-.mypy_cache/
-.pytest_cache/
-
-# Build artifacts
-dist/
-build/
-target/
-*.egg-info/
-
-# Logs
-*.log
-*.out
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-*.tmp
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Coverage
+```
+# Coverage reports
+coverage.xml
 coverage/
 htmlcov/
 .coverage
 
-# Compiled Python
+# Python
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Testing
+.Python
+env/
+venv/
+.venv/
+.ENV
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+nosetests.xml
 .pytest_cache/
-.hypothesis/
+.mypy_cache/
+
+# Test files
+.tests/
+test-output/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.DS_Store
+Thumbs.db
+```
