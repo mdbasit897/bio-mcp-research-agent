@@ -8,6 +8,21 @@ from typing import Dict, Any, List, Optional
 import json
 
 
+class MockResult:
+    """Mock tool execution result"""
+
+    def __init__(self, content: Any, content_type: str = "text"):
+        self.content = content
+        self.content_type = content_type
+
+
+class MockToolList:
+    """Mock tool list response"""
+
+    def __init__(self, tools):
+        self.tools = tools
+
+
 class MockMCPClient:
     """Mock MCP client for testing server interactions"""
     

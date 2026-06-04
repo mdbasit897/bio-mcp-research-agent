@@ -1,46 +1,50 @@
-```
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-.coverage
-coverage.xml
-
-# Testing
-.coverage*
-coverage.xml
-htmlcov/
-.pytest_cache/
-
-# Compiled and build artifacts
-*.o
-*.obj
-*.out
-*.exe
-*.dll
-*.so
-*.a
+# Examples
+GITHUB_ACTIONS_FIX_GUIDE.md
 
 # Dependencies
+node_modules/
 .venv/
 venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+
+# Build artifacts
+dist/
+build/
+target/
+*.egg-info/
+
+# Logs
+*.log
+*.out
+
+# Environment
 .env
 .env.local
-.env.*
-
-# Logs and temp files
-*.log
-*.tmp
-*.swp
+*.env.*
 
 # Editors
 .vscode/
 .idea/
+*.swp
+*.swo
+*.tmp
 
-# System files
+# OS
 .DS_Store
 Thumbs.db
-```
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Compiled Python
+*.pyc
+*.pyo
+*.pyd
+
+# Testing
+.pytest_cache/
+.hypothesis/
