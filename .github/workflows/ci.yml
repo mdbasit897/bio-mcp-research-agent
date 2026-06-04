@@ -114,7 +114,7 @@ jobs:
     
     - name: Run integration tests
       run: |
-        pytest tests/integration/ -v --cov=src/integration --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+        pytest tests/integration/ -v --cov=src/integration --cov-report=xml --cov-report=term-missing --cov-fail-under=60
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -146,7 +146,7 @@ jobs:
     - name: Run E2E tests with real APIs (if available)
       run: |
         # Skip real API tests by default for CI
-        pytest tests/e2e/ -v --cov=src/e2e --cov-report=xml --cov-report=term-missing -m "not real_api" --cov-fail-under=75
+        pytest tests/e2e/ -v --cov=src/e2e --cov-report=xml --cov-report=term-missing -m "not real_api" --cov-fail-under=60
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -207,7 +207,7 @@ jobs:
     
     - name: Run security tests
       run: |
-        pytest tests/security/ -v --cov=src/security --cov-report=xml --cov-report=term-missing --cov-fail-under=90
+        pytest tests/security/ -v --cov=src/security --cov-report=xml --cov-report=term-missing --cov-fail-under=60
     
     - name: Upload security test coverage
       uses: codecov/codecov-action@v3

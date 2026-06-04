@@ -9,8 +9,9 @@ import os
 from unittest.mock import Mock, AsyncMock, patch
 import sys
 
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+# Add src and tests directories to path for proper imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
 
 
 @pytest.fixture(scope="session")
