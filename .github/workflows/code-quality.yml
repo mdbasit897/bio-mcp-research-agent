@@ -79,7 +79,7 @@ jobs:
       run: semgrep --config=p/security -j -o semgrep-report.json
     
     - name: Upload security reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: security-reports
         path: |
@@ -121,7 +121,7 @@ jobs:
       run: pip list --outdated --format=json > outdated_requirements.json
     
     - name: Upload dependency analysis
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dependency-analysis
         path: |
@@ -161,7 +161,7 @@ jobs:
       run: xedoc src/ > xedoc-report.txt
     
     - name: Upload code metrics
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: code-metrics
         path: |
@@ -199,7 +199,7 @@ jobs:
         kernprof -l -v -o line_profile.txt src/agent.py
     
     - name: Upload performance analysis
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: performance-analysis
         path: |
@@ -260,7 +260,7 @@ jobs:
         echo "Performance Status: Passed" >> quality-report.txt
     
     - name: Upload quality report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: quality-report
         path: quality-report.txt

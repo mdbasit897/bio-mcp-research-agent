@@ -5,8 +5,13 @@ import pytest
 import asyncio
 import time
 import json
-import psutil
 import os
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+    psutil = None
 from unittest.mock import Mock, AsyncMock, patch
 import sys
 from typing import Dict, List, Any, Optional
@@ -19,43 +24,54 @@ from agent import run_research_agent
 
 class PerformanceBenchmark:
     """Performance benchmarking utility class"""
-    
+
     def __init__(self):
         self.start_time = None
         self.end_time = None
         self.memory_usage = []
         self.cpu_usage = []
-        
+        self.psutil_available = PSUTIL_AVAILABLE
+
     def start(self):
         """Start benchmarking"""
         self.start_time = time.time()
         self.memory_usage = []
         self.cpu_usage = []
-        
+
     def end(self):
         """End benchmarking"""
         self.end_time = time.time()
-        
+
     def record_metrics(self):
         """Record current resource usage"""
+        if not self.psutil_available:
+            return
+        
         process = psutil.Process()
         self.memory_usage.append(process.memory_info().rss / 1024 / 1024)  # MB
         self.cpu_usage.append(process.cpu_percent())
-        
+
     def get_results(self) -> Dict[str, Any]:
         """Get benchmark results"""
         if self.start_time is None or self.end_time is None:
             return {}
-            
-        return {
+
+        results = {
             "execution_time": self.end_time - self.start_time,
-            "avg_memory_usage": sum(self.memory_usage) / len(self.memory_usage) if self.memory_usage else 0,
-            "max_memory_usage": max(self.memory_usage) if self.memory_usage else 0,
-            "avg_cpu_usage": sum(self.cpu_usage) / len(self.cpu_usage) if self.cpu_usage else 0,
-            "max_cpu_usage": max(self.cpu_usage) if self.cpu_usage else 0,
+            "psutil_available": self.psutil_available,
             "memory_samples": len(self.memory_usage),
             "cpu_samples": len(self.cpu_usage)
         }
+
+        if self.psutil_available and self.memory_usage:
+            results.update({
+                "avg_memory_usage": sum(self.memory_usage) / len(self.memory_usage),
+                "max_memory_usage": max(self.memory_usage),
+                "avg_cpu_usage": sum(self.cpu_usage) / len(self.cpu_usage),
+                "max_cpu_usage": max(self.cpu_usage)
+            })
+
+        return results
 
 
 class TestAgentPerformance:
@@ -93,7 +109,8 @@ class TestAgentPerformance:
             
             # Assert startup is fast (< 2 seconds)
             assert results["execution_time"] < 2.0
-            assert results["max_memory_usage"] < 100  # Less than 100MB
+            if results["psutil_available"]:
+                assert results["max_memory_usage"] < 100  # Less than 100MB
 
     @pytest.mark.performance
     async def test_concurrent_request_performance(self):
@@ -155,6 +172,8 @@ class TestAgentPerformance:
             # Should complete within 10 seconds for 5 iterations
             assert results["execution_time"] < 10.0
             assert request_count == 5  # Should have executed 5 iterations
+            if results["psutil_available"]:
+                assert results["max_memory_usage"] < 100  # Less than 100MB
 
     @pytest.mark.performance
     async def test_large_dataset_performance(self):
@@ -222,7 +241,8 @@ class TestAgentPerformance:
             
             # Should handle large datasets within reasonable time
             assert results["execution_time"] < 15.0
-            assert results["max_memory_usage"] < 200  # Less than 200MB
+            if results["psutil_available"]:
+                assert results["max_memory_usage"] < 200  # Less than 200MB
 
     @pytest.mark.performance
     async def test_memory_usage_stability(self):
@@ -253,7 +273,7 @@ class TestAgentPerformance:
                 
                 benchmark.end()
                 results = benchmark.get_results()
-                memory_samples.append(results["max_memory_usage"])
+                memory_samples.append(results)
             
             # Clean up between runs
             await asyncio.sleep(0.1)
@@ -293,8 +313,9 @@ class TestAgentPerformance:
             results = benchmark.get_results()
             
             # CPU usage should be reasonable
-            assert results["avg_cpu_usage"] < 50.0  # Less than 50% average CPU
-            assert results["max_cpu_usage"] < 80.0   # Less than 80% peak CPU
+            if results["psutil_available"]:
+                assert results["avg_cpu_usage"] < 50.0  # Less than 50% average CPU
+                assert results["max_cpu_usage"] < 80.0   # Less than 80% peak CPU
 
 
 class TestServerPerformance:

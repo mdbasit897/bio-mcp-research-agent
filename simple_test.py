@@ -23,10 +23,10 @@ def run_basic_tests():
         return False
     
     try:
-        from agent import Agent
-        print("✅ Agent class imports successfully")
+        from agent import run_research_agent
+        print("✅ Agent function imports successfully")
     except Exception as e:
-        print(f"❌ Agent class import failed: {e}")
+        print(f"❌ Agent function import failed: {e}")
         return False
     
     # Test basic functionality
@@ -45,9 +45,8 @@ def run_syntax_checks():
     
     source_files = [
         'src/agent.py',
-        'src/mcp_servers/pubmed_server.py',
-        'src/mcp_servers/semantic_scholar_server.py',
-        'src/mcp_servers/filesystem_server.py'
+        'src/servers/pubmed_server.py',
+        'src/servers/semantic_scholar.py'
     ]
     
     for file_path in source_files:
