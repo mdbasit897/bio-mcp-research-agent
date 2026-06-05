@@ -39,7 +39,7 @@ def bio_mcp_research_agent(llm) -> None:
     )
     
     # Evaluate Criteria 2: Structure and Citations
-    citation_pattern = r"(\[\d+\]|\([A-Za-z]+,\s*\d{4}\))"
+    citation_pattern = r"(\[\d+\]|\([A-Za-z\s\.,]+,\s*\d{4}\))"
     kbench.assertions.assert_true(
         bool(re.search(citation_pattern, response)),
         expectation="Model should include formal structured citations (e.g., [1] or (Author, Year))."
