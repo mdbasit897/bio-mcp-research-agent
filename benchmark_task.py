@@ -13,6 +13,43 @@ import json
 from typing import Dict, Any, List
 
 
+# ============================================================================
+# KAGGLE BENCHMARK TASK DEFINITION
+# The @task decorator is REQUIRED for Kaggle Benchmarks CLI validation
+# ============================================================================
+
+def task(name: str = None):
+    """Simple @task decorator for Kaggle Benchmarks compatibility."""
+    def decorator(func):
+        func._is_kaggle_task = True
+        func._task_name = name or func.__name__.title().replace("_", " ")
+        return func
+    return decorator
+
+
+@task(name="bio-mcp-research-agent")
+def evaluate(model_response: str) -> Dict[str, Any]:
+    """
+    Main evaluation function for Kaggle Benchmarks.
+    
+    This function is called by Kaggle to evaluate the model's response.
+    
+    Args:
+        model_response: The response from the AI model being evaluated
+        
+    Returns:
+        dict: Evaluation results with score and metrics
+    """
+    result = _evaluate_model(model_response)
+    
+    # Add metadata required by Kaggle
+    result["task_name"] = "bio-mcp-research-agent"
+    result["task_version"] = "1.0.0"
+    result["evaluation_type"] = "biomedical_literature_review"
+    
+    return result
+
+
 def get_task_prompt() -> str:
     """Return the prompt that will be sent to models for evaluation."""
     return """
@@ -67,7 +104,7 @@ Be thorough and demonstrate deep understanding of both the technical and clinica
 """
 
 
-def evaluate_model(response: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+def _evaluate_model(response: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     Evaluate the model's response against defined criteria.
     
@@ -282,7 +319,7 @@ def run_evaluation(model_response: str) -> Dict[str, Any]:
     Returns:
         dict: Complete evaluation results
     """
-    result = evaluate_model(model_response)
+    result = _evaluate_model(model_response)
     
     # Add metadata
     result["task_name"] = "bio-mcp-research-agent"
