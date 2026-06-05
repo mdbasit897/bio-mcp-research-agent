@@ -1,39 +1,4 @@
 ```
 # Coverage reports
 coverage.xml
-coverage/
-htmlcov/
-.coverage
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-.ENV
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-nosetests.xml
-.pytest_cache/
-.mypy_cache/
-
-# Test files
-.tests/
-test-output/
-
-# Logs
-*.log
-
-# Temporary files
-*.tmp
-*.temp
-*~
-.DS_Store
-Thumbs.db
 ```
