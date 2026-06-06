@@ -24,7 +24,7 @@ client = AsyncOpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY", "ollama"),
     base_url=os.getenv("OPENROUTER_BASE_URL", "http://localhost:11434/v1"),
     default_headers={
-        "HTTP-Referer": "https://github.com/your-username/bio-mcp-research-agent",
+        "HTTP-Referer": "https://github.com/mdbasit897/bio-mcp-research-agent",
         "X-Title": "Bio MCP Research Agent"
     }
 )

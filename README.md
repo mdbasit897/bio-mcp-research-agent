@@ -24,14 +24,23 @@ The agent operates on a client-server MCP architecture:
 
 ## Installation
 
+### Quick Start (Recommended)
+
+```bash
+git clone https://github.com/mdbasit897/bio-mcp-research-agent.git
+cd bio-mcp-research-agent
+python -m venv venv && source venv/bin/activate   # On Windows: venv\Scripts\activate
+pip install -e ".[dev]"                           # Installs app + dev deps in one command
+```
+
+> **Note:** This project also requires **Node.js** (≥18) for the `@modelcontextprotocol/server-filesystem` MCP server.
+> Verify with `node --version && npm --version`.
+
+### Manual Install
+
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/mdbasit897/bio-mcp-research-agent.git
-   cd bio-mcp-research-agent
-   
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/your-username/bio-mcp-research-agent.git
    cd bio-mcp-research-agent
    ```
 
@@ -61,6 +70,18 @@ OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 OPENROUTER_MODEL=qwen/qwen-2.5-coder-32b-instruct
 ```
 *(Note: To use a local model, comment out the OpenRouter variables and uncomment the Ollama variables in `.env`)*
+
+## Makefile
+
+A `Makefile` is included for common tasks:
+
+```bash
+make install    # Set up venv and install deps
+make test       # Run tests with coverage
+make lint       # Run flake8
+make typecheck  # Run mypy
+make clean      # Remove build artifacts
+```
 
 ## 💻 Usage
 

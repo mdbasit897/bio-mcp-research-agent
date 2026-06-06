@@ -1,0 +1,150 @@
+# =============================================================================
+# Bio MCP Research Agent — Package Configuration
+# =============================================================================
+# Install: pip install .        (production)
+#          pip install -e .      (development, editable)
+#          pip install -e ".[dev]" (editable + dev deps)
+# =============================================================================
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bio-mcp-research-agent"
+version = "0.1.0"
+description = "An MCP agent for automated biomedical literature reviews"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [{name = "mdbasit", email = "mdbasit897@gmail.com"}]
+keywords = [
+    "mcp",
+    "biomedical",
+    "literature-review",
+    "research-agent",
+    "pubmed",
+    "semantic-scholar",
+    "llm",
+    "openai",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Medical Science Info.",
+]
+
+dependencies = [
+    "mcp>=1.0.0",
+    "openai>=1.50.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.27.0",
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-xdist>=3.3.0",
+    "pytest-benchmark>=4.0.0",
+    "pytest-html>=4.1.0",
+    "responses>=0.25.0",
+    "aioresponses>=0.7.4",
+    "freezegun>=1.2.2",
+    "factory-boy>=3.3.0",
+    # Code quality
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.7.0",
+    "bandit>=1.7.5",
+    "safety>=2.3.0",
+    # Documentation
+    "sphinx>=7.1.0",
+    "sphinx-rtd-theme>=1.3.0",
+    # Performance
+    "memory-profiler>=0.61.0",
+    "psutil>=5.9.0",
+]
+
+[project.scripts]
+bio-agent = "src.agent_cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.setuptools.package-data]
+src = ["prompts/*.md", "examples/*.md"]
+
+# ── Tool configs (migrated from setup.cfg) ──────────────────────────────────
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--verbose",
+    "--tb=short",
+    "--strict-markers",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "--cov-report=xml",
+    "--cov-fail-under=85",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "e2e: End-to-end tests",
+    "performance: Performance tests",
+    "security: Security tests",
+    "slow: Slow tests",
+    "real_api: Tests requiring real API access",
+    "skip_ci: Tests to skip in CI",
+]
+
+[tool.black]
+line_length = 127
+target-version = ["py310", "py311", "py312"]
+
+[tool.flake8]
+max-line-length = 127
+max-complexity = 10
+extend-ignore = ["E203", "W503"]
+per-file-ignores = ["__init__.py:F401"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+# Only ignore imports for packages that have no type stubs
+disallow_untyped_defs = true
+implicit_reexport = false
+
+[[tool.mypy.overrides]]
+module = ["mcp.*", "mcp.server.fastmcp"]
+ignore_missing_imports = true
+
+[tool.isort]
+profile = "black"
+line_length = 127
+known_first_party = ["src", "tests"]
+
+[tool.bandit]
+skips = ["B101", "B601"]
+exclude_dirs = ["tests", "venv", "env"]
+
+[tool.pydocstyle]
+convention = "google"
+match = "(?!test_).*\\.py"
+match-dir = "(?!tests).*"
