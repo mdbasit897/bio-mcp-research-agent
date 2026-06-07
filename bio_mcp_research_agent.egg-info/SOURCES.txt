@@ -1,0 +1,16 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+bio_mcp_research_agent.egg-info/PKG-INFO
+bio_mcp_research_agent.egg-info/SOURCES.txt
+bio_mcp_research_agent.egg-info/dependency_links.txt
+bio_mcp_research_agent.egg-info/entry_points.txt
+bio_mcp_research_agent.egg-info/requires.txt
+bio_mcp_research_agent.egg-info/top_level.txt
+src/__init__.py
+src/agent.py
+src/agent_cli.py
+src/servers/__init__.py
+src/servers/pubmed_server.py
+src/servers/semantic_scholar.py
