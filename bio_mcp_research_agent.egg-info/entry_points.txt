@@ -1,0 +1,2 @@
+[console_scripts]
+bio-agent = src.agent_cli:main

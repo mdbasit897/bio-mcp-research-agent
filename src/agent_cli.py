@@ -61,7 +61,7 @@ async def run_research_agent(prompt: str):
             await pubmed_session.initialize()
             await ss_session.initialize()
             await fs_session.initialize()
-            logger.info("✅ All MCP servers connected and initialized.")
+            logger.info("All MCP servers connected and initialized.")
 
             # Gather all available tools
             pubmed_tools = await pubmed_session.list_tools()
