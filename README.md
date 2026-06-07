@@ -85,14 +85,75 @@ make clean      # Remove build artifacts
 
 ## 💻 Usage
 
-Run the orchestrator script. It will automatically spin up the MCP servers, connect to the LLM, and execute the research workflow defined in `__main__`.
+The Bio MCP Research Agent is designed for **biomedical researchers** who need to conduct systematic literature reviews efficiently. No coding required!
 
+### Quick Start Options
+
+#### 1. **Interactive Mode** (Recommended for first-time users)
 ```bash
 python src/agent.py
 ```
+You'll be guided through selecting a template and entering your research topic.
 
-### Customizing the Workflow
-Modify the `example_prompt` variable in `src/agent.py`, or load a prompt dynamically from a file (e.g., `examples/research_prompt.md`) to tailor the agent to your specific PhD research domain (e.g., Raman spectroscopy, interstitial fluid lag time, or multimodal sensor fusion).
+#### 2. **Use a Pre-built Template** (Fastest workflow)
+```bash
+# Systematic literature review
+python src/agent.py --template systematic_review --topic "non-invasive glucose monitoring PPG machine learning"
+
+# Meta-analysis data extraction
+python src/agent.py -t meta_analysis -T "metformin cardiovascular outcomes type 2 diabetes"
+
+# Research gap analysis for grant proposals
+python src/agent.py -t gap_analysis -T "CRISPR gene editing off-target effects"
+
+# Reproducibility audit
+python src/agent.py -t reproducibility_check -T "deep learning medical imaging diagnostics"
+
+# Clinical translation roadmap
+python src/agent.py -t clinical_translation -T "continuous glucose monitor artificial pancreas"
+```
+
+#### 3. **Custom Prompt** (Maximum flexibility)
+```bash
+python src/agent.py --custom "
+Act as a biomedical expert. Search PubMed for recent papers on diabetic retinopathy AI detection.
+Extract sensitivity, specificity, and AUC values. Save results to research_outputs/dr_ai.md
+"
+```
+
+#### 4. **List Available Templates**
+```bash
+python src/agent.py --list-templates
+```
+
+### Available Templates
+
+| Template | Use Case | Output |
+|----------|----------|--------|
+| `systematic_review` | PhD proposals, grant applications, paper introductions | Structured summary with gaps & future directions |
+| `meta_analysis` | Preparing data for statistical meta-analysis | CSV-ready table with effect sizes |
+| `gap_analysis` | Identifying research opportunities for R01 grants | Prioritized gap list + Specific Aims draft |
+| `reproducibility_check` | Auditing computational studies | Reproducibility scores & recommendations |
+| `clinical_translation` | Evaluating path-to-clinic for technologies | TRL assessment + investor summary |
+
+### Output Files
+
+All research outputs are automatically saved to `research_outputs/` directory with timestamps:
+- Markdown files (`.md`) with structured summaries
+- Tables, figures (as text), and synthesis narratives
+- Ready for inclusion in proposals, papers, or presentations
+
+### Example Workflow
+
+```bash
+# Step 1: Run a systematic review
+python src/agent.py -t systematic_review -T "wearable ECG arrhythmia detection deep learning"
+
+# Step 2: Check the generated output
+cat research_outputs/systematic_review_20260607_143022.md
+
+# Step 3: Use the output in your PhD proposal or paper
+```
 
 ## Contributing
 
