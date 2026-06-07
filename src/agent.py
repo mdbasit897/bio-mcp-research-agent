@@ -363,7 +363,7 @@ async def run_research_agent(prompt: str):
 if __name__ == "__main__":
     # Parse command line arguments - Simple interface for researchers
     parser = argparse.ArgumentParser(
-        description=\"\"\"Bio MCP Research Agent - Automated systematic literature review for biomedical research.
+        description="""Bio MCP Research Agent - Automated systematic literature review for biomedical research.
 
 Just type your research topic or question and the agent will handle everything!
         
@@ -372,7 +372,7 @@ Examples:
   python src/agent.py "non-invasive glucose monitoring"  # Quick research on a topic
   python src/agent.py "What are the latest advances in CRISPR off-target detection?"
   python src/agent.py --list-templates                   # Show available templates
-        \"\"\",
+        """,
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
